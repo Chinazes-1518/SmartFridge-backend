@@ -4,8 +4,10 @@ from fastapi.responses import PlainTextResponse
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 import database
+import routes
 
 app = FastAPI()
+app.include_router(routes.router)
 
 
 @app.get("/", response_class=PlainTextResponse)
