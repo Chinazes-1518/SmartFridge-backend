@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import create_engine
 
+import database
+
 app = FastAPI()
 
 

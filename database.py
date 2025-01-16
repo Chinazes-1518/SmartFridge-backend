@@ -1,17 +1,21 @@
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
-from sqlalchemy import ForeignKey, Integer, String, JSON
+from sqlalchemy import ForeignKey, Integer, String, JSON, DateTime
 from datetime import datetime
 from typing import Optional
 
 
-class ProductCategories(DeclarativeBase):
+class MyBase(DeclarativeBase):
+    pass
+
+
+class ProductCategories(MyBase):
     __tablename__ = "product_categories"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, unique=True)
 
 
-class ProductTypes(DeclarativeBase):
+class ProductTypes(MyBase):
     __tablename__ = "product_types"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -24,7 +28,14 @@ class ProductTypes(DeclarativeBase):
     allergens: Mapped[Optional[str]]
 
 
-class Products(DeclarativeBase):
+class Organisations(MyBase):
+    __tablename__ = "organisations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True)
+
+
+class Products(MyBase):
     __tablename__ = "products"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -34,14 +45,7 @@ class Products(DeclarativeBase):
     expiry_date: Mapped[datetime]
 
 
-class Organisations(DeclarativeBase):
-    __tablename__ = "organisations"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(unique=True)
-
-
-class Users(DeclarativeBase):
+class Users(MyBase):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -50,13 +54,14 @@ class Users(DeclarativeBase):
     password_hash: Mapped[str]
 
 
-class ActiveTokens(DeclarativeBase):
+class ActiveTokens(MyBase):
     __tablename__ = "active_tokens"
 
+    id: Mapped[int] = mapped_column(primary_key=True)
     token: Mapped[str] = mapped_column(unique=True)
 
 
-class BuyList(DeclarativeBase):
+class BuyList(MyBase):
     __tablename__ = "buylist"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -64,9 +69,9 @@ class BuyList(DeclarativeBase):
     amount: Mapped[int]
 
 
-class Analytics(DeclarativeBase):
+class Analytics(MyBase):
     __tablename__ = "analytics"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(datetime, unique=True)
+    date: Mapped[datetime] = mapped_column(DateTime, unique=True)
     data: Mapped[dict] = mapped_column(JSON)  # словарь {айди типа товара: колво проданных}
