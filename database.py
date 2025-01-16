@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from sqlalchemy import ForeignKey, Integer, String, JSON
 from datetime import datetime
+from typing import Optional
 
 
 class ProductCategories(DeclarativeBase):
@@ -16,17 +17,18 @@ class ProductTypes(DeclarativeBase):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, unique=True)
     category_id: Mapped[int] = mapped_column(ForeignKey(ProductCategories.id, ondelete="CASCADE"))
-    weight: Mapped[int]
-    amount: Mapped[int]
-    nutritional: Mapped[int]
-    measure_type: Mapped[str]
-    allergens: Mapped[str]
+    amount: Mapped[float]
+    units: Mapped[str]  # например, г, мл
+    nutritional: Mapped[int]  # в ккал
+    measure_type: Mapped[str]  # например, штуки, вес
+    allergens: Mapped[Optional[str]]
 
 
 class Products(DeclarativeBase):
     __tablename__ = "products"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey(Organisations.id, ondelete="CASCADE"))
     type_id: Mapped[int] = mapped_column(ForeignKey(ProductTypes.id, ondelete="CASCADE"))
     production_date: Mapped[datetime]
     expiry_date: Mapped[datetime]
@@ -46,6 +48,12 @@ class Users(DeclarativeBase):
     org_id: Mapped[int] = mapped_column(ForeignKey(Organisations.id, ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
+
+
+class ActiveTokens(DeclarativeBase):
+    __tablename__ = "active_tokens"
+
+    token: Mapped[str] = mapped_column(unique=True)
 
 
 class BuyList(DeclarativeBase):
