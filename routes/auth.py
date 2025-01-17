@@ -13,12 +13,12 @@ async def login(username: str, password: str) -> str:
         request = await session.execute(select(database.Users).where(database.Users.name == username.strip()))
         user = request.scalar_one_or_none()
 
-        if user is None or utils.hash_password(password.strip()):
-            raise HTTPException(403, "Forbidden")
+        # if user is None or utils.hash_password(password.strip()) != user.password:
+        #     raise HTTPException(403, "Forbidden")
 
         token = utils.gen_token()
 
-        res = await session.execute(insert(database.ActiveTokens).values(user_id=user.id, token=token))
-        session.commit()
+        # res = await session.execute(insert(database.ActiveTokens).values(user_id=user.id, token=token))
+        # session.commit()
 
-        return token
+        return {}
