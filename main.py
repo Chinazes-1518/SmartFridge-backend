@@ -11,7 +11,7 @@ import routes
 async def lifespan(app: FastAPI):
     print("Creating tables in database")
     async with database.engine.begin() as connection:
-        await connection.run_sync(database.Base.metadata.create_all)
+        await connection.run_sync(database.MyBase.metadata.create_all)
     yield
 
 
