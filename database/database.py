@@ -28,18 +28,10 @@ class ProductTypes(MyBase):
     allergens: Mapped[Optional[str]]
 
 
-class Organisations(MyBase):
-    __tablename__ = "organisations"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(unique=True)
-
-
 class Products(MyBase):
     __tablename__ = "products"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    org_id: Mapped[int] = mapped_column(ForeignKey(Organisations.id, ondelete="CASCADE"))
     type_id: Mapped[int] = mapped_column(ForeignKey(ProductTypes.id, ondelete="CASCADE"))
     production_date: Mapped[datetime]
     expiry_date: Mapped[datetime]
@@ -49,7 +41,6 @@ class Users(MyBase):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    org_id: Mapped[int] = mapped_column(ForeignKey(Organisations.id, ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
 
@@ -58,6 +49,7 @@ class ActiveTokens(MyBase):
     __tablename__ = "active_tokens"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey(Users.id, ondelete="CASCADE"))
     token: Mapped[str] = mapped_column(unique=True)
 
 
