@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, update
 
 import database
 import utils
@@ -22,19 +22,21 @@ async def login(login: str, password: str) -> str:
 
         print(f'New token for user {user.id} ({user.name}): {token}')
 
-        user2 = user.copy()
+        user_id, user_name = user.id, user.name
 
         req = await session.execute(select(database.ActiveTokens).where(database.ActiveTokens.user_id == user.id))
-        if req.scalar_one_or_none() is None:  # no token for user yet
-            print('Adding')
+        val = req.scalar_one_or_none()
+        if val is None:  # no token for user yet
+            # print('Adding')
             await session.execute(insert(database.ActiveTokens).values(user_id=user.id, token=token))
             await session.commit()
         else:
-            print('Changing')
-            req.token = token
+            # print('Changing')
+            val.token = token
+            await session.commit()
 
-        return {
+        return utils.json_responce({
             'token': token,
-            'id': user.id,
-            'name': user.name
-        }
+            'id': user_id,
+            'name': user_name
+        })
