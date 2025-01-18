@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Header
+from fastapi.responses import JSONResponse
 from sqlalchemy import select, insert, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
@@ -11,7 +12,7 @@ router = APIRouter(prefix='/buylist')
 
 
 @router.get('/get')
-async def get_buylist(token: Annotated[str, Header()]) -> str:
+async def get_buylist(token: Annotated[str, Header()]) -> JSONResponse:
     async with database.sessions.begin() as session:
         await utils.verify_token(session, token)
         result = await session.execute(select(database.BuyList))
@@ -25,7 +26,7 @@ class BuylistAdd(BaseModel):
     
 
 @router.post('/add')
-async def add_to_buylist(data: BuylistAdd, token: Annotated[str, Header()]) -> str:
+async def add_to_buylist(data: BuylistAdd, token: Annotated[str, Header()]) -> JSONResponse:
     async with database.sessions.begin() as session:
         await utils.verify_token(session, token)
         existing_item = await session.execute(select(database.BuyList).where(database.BuyList.prod_type_id == data.prod_type_id))
@@ -37,7 +38,7 @@ async def add_to_buylist(data: BuylistAdd, token: Annotated[str, Header()]) -> s
 
 
 @router.delete('/remove/{buylist_id}')
-async def remove_from_buylist(buylist_id: int, token: Annotated[str, Header()]) -> str:
+async def remove_from_buylist(buylist_id: int, token: Annotated[str, Header()]) -> JSONResponse:
     async with database.sessions.begin() as session:
         await utils.verify_token(session, token)
         existing_item = await session.execute(select(database.BuyList).where(database.BuyList.id == buylist_id))

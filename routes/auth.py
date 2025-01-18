@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy import select, insert, update
+from pydantic import BaseModel
 
 import database
 import utils
@@ -8,7 +10,7 @@ router = APIRouter(prefix='/auth')
 
 
 @router.get('/login')
-async def login(login: str, password: str) -> str:
+async def login(login: str, password: str) -> JSONResponse:
     async with database.sessions.begin() as session:
         request = await session.execute(select(database.Users).where(database.Users.login == login.strip()))
         user = request.scalar_one_or_none()
@@ -35,9 +37,18 @@ async def login(login: str, password: str) -> str:
         })
 
 
+class RegisterModel(BaseModel):
+    login: str
+    password: str
+    name: str
+    secret: str
+
+
 @router.post('/register')
-async def register(login: str, password: str, name: str, secret: str) -> str:
+async def register(data: RegisterModel) -> JSONResponse:
     async with database.sessions.begin() as session:
+        print(data)
+        login, password, name, secret = data.login, data.password, data.name, data.secret
         request = await session.execute(select(database.Users).where(database.Users.login == login.strip()))
         user = request.scalar_one_or_none()
 
