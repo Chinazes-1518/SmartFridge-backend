@@ -44,14 +44,7 @@ class Users(MyBase):
     login: Mapped[str] = mapped_column(unique=True)
     name: Mapped[str]
     password_hash: Mapped[str]
-
-
-class ActiveTokens(MyBase):
-    __tablename__ = "active_tokens"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey(Users.id, ondelete="CASCADE"))
-    token: Mapped[str] = mapped_column(unique=True)
+    token: Mapped[Optional[str]]
 
 
 class BuyList(MyBase):

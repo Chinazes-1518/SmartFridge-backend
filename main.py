@@ -30,6 +30,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# print(utils.hash_password('1234'))
+
 
 @app.get("/", response_class=PlainTextResponse)
 def read_root():

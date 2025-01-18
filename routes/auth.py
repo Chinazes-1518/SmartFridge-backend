@@ -13,10 +13,11 @@ async def login(login: str, password: str) -> str:
         request = await session.execute(select(database.Users).where(database.Users.login == login.strip()))
         user = request.scalar_one_or_none()
 
-        print(user)
-
-        if user is None or utils.hash_password(password.strip()) != user.password_hash:
-            raise HTTPException(403, "Forbidden")
+        if user is None:
+            raise HTTPException(403, '{"error": "User not found"}')
+        
+        if utils.hash_password(password.strip()) != user.password_hash:
+            raise HTTPException(403, '{"error": "Password doesnt match"}')
 
         token = utils.gen_token()
 
@@ -24,16 +25,8 @@ async def login(login: str, password: str) -> str:
 
         user_id, user_name = user.id, user.name
 
-        req = await session.execute(select(database.ActiveTokens).where(database.ActiveTokens.user_id == user.id))
-        val = req.scalar_one_or_none()
-        if val is None:  # no token for user yet
-            # print('Adding')
-            await session.execute(insert(database.ActiveTokens).values(user_id=user.id, token=token))
-            await session.commit()
-        else:
-            # print('Changing')
-            val.token = token
-            await session.commit()
+        user.token = token
+        await session.commit()
 
         return utils.json_responce({
             'token': token,
