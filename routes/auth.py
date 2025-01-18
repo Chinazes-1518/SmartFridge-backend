@@ -35,7 +35,7 @@ async def login(login: str, password: str) -> str:
         })
 
 
-@router.get('/register')
+@router.post('/register')
 async def register(login: str, password: str, name: str, secret: str) -> str:
     async with database.sessions.begin() as session:
         request = await session.execute(select(database.Users).where(database.Users.login == login.strip()))
