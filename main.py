@@ -1,6 +1,7 @@
 from typing import Union
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 import database
@@ -20,6 +21,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(routes.router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost", "http://127.0.0.1", "http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/", response_class=PlainTextResponse)
