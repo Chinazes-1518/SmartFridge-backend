@@ -16,10 +16,10 @@ async def login(login: str, password: str) -> JSONResponse:
         user = request.scalar_one_or_none()
 
         if user is None:
-            raise HTTPException(403, '{"error": "Пользователя не существует"}')
+            raise HTTPException(403, {"error": "Пользователя с таким логином не существует"})
         
         if utils.hash_password(password.strip()) != user.password_hash:
-            raise HTTPException(403, '{"error": "Неправильный пароль"}')
+            raise HTTPException(403, {"error": "Неправильный пароль"})
 
         token = utils.gen_token()
 
@@ -53,10 +53,10 @@ async def register(data: RegisterModel) -> JSONResponse:
         user = request.scalar_one_or_none()
 
         if secret.strip() != 'saslo228':
-            raise HTTPException(403, '{"error": "Нет доступа"}')
+            raise HTTPException(403, {"error": "Неверный пароль доступа"})
 
         if user is not None:
-            raise HTTPException(418, '{"error": "Пользователь уже существует"}')
+            raise HTTPException(418, {"error": "Пользователь с таким логином уже существует"})
         
         token = utils.gen_token()
 

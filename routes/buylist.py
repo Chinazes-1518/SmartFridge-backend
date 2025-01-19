@@ -31,7 +31,7 @@ async def add_to_buylist(data: BuylistAdd, token: Annotated[str, Header()]) -> J
         await utils.verify_token(session, token)
         existing_item = await session.execute(select(database.BuyList).where(database.BuyList.prod_type_id == data.prod_type_id))
         if existing_item.scalar_one_or_none():
-            raise HTTPException(400, '{"error": "Продукт уже есть в списке покупок"}')
+            raise HTTPException(400, {"error": "Продукт уже есть в списке покупок"})
         await session.execute(insert(database.BuyList).values(prod_type_id=data.prod_type_id, amount=data.amount))
         await session.commit()
         return utils.json_responce({"message": "Продукт успешно добавлен в список покупок"})
@@ -43,7 +43,7 @@ async def remove_from_buylist(buylist_id: int, token: Annotated[str, Header()]) 
         await utils.verify_token(session, token)
         existing_item = await session.execute(select(database.BuyList).where(database.BuyList.id == buylist_id))
         if not existing_item.scalar_one_or_none():
-            raise HTTPException(404, '{"error": "Продукт не найден в списке покупок"}')
+            raise HTTPException(404, {"error": "Продукт не найден в списке покупок"})
         await session.execute(delete(database.BuyList).where(database.BuyList.id == buylist_id))
         await session.commit()
         return utils.json_responce({"message": "Продукт успешно удален из списка покупок"})
