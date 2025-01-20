@@ -17,7 +17,7 @@ async def login(login: str, password: str) -> JSONResponse:
 
         if user is None:
             raise HTTPException(403, {"error": "Пользователя с таким логином не существует"})
-        
+
         if utils.hash_password(password.strip()) != user.password_hash:
             raise HTTPException(403, {"error": "Неправильный пароль"})
 
@@ -47,7 +47,7 @@ class RegisterModel(BaseModel):
 @router.post('/register')
 async def register(data: RegisterModel) -> JSONResponse:
     async with database.sessions.begin() as session:
-        print(data)
+        # print(data)
         login, password, name, secret = data.login, data.password, data.name, data.secret
         request = await session.execute(select(database.Users).where(database.Users.login == login.strip()))
         user = request.scalar_one_or_none()
@@ -57,13 +57,25 @@ async def register(data: RegisterModel) -> JSONResponse:
 
         if user is not None:
             raise HTTPException(418, {"error": "Пользователь с таким логином уже существует"})
-        
+
         token = utils.gen_token()
 
-        req = await session.execute(insert(database.Users).values(login=login.strip(), name=name.strip(), password_hash=utils.hash_password(password), token=token))
+        req = await session.execute(insert(database.Users).values(login=login.strip(), name=name.strip(),
+                                                                  password_hash=utils.hash_password(password),
+                                                                  token=token))
         await session.commit()
 
         return utils.json_responce({
             'token': token,
             'id': req.inserted_primary_key[0]
         })
+
+
+@router.get('/verify')
+async def verify(token: str) -> JSONResponse:
+    async with database.sessions.begin() as session:
+        request = await session.execute(select(database.Users).where(database.Users.token == token.strip()))
+        user = request.scalar_one_or_none()
+        if user is None:
+            return HTTPException(403, {"error": "Токен не найден"})
+        return utils.json_responce({})

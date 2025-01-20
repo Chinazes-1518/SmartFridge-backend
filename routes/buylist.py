@@ -23,13 +23,14 @@ async def get_buylist(token: Annotated[str, Header()]) -> JSONResponse:
 class BuylistAdd(BaseModel):
     prod_type_id: int
     amount: int
-    
+
 
 @router.post('/add')
 async def add_to_buylist(data: BuylistAdd, token: Annotated[str, Header()]) -> JSONResponse:
     async with database.sessions.begin() as session:
         await utils.verify_token(session, token)
-        existing_item = await session.execute(select(database.BuyList).where(database.BuyList.prod_type_id == data.prod_type_id))
+        existing_item = await session.execute(
+            select(database.BuyList).where(database.BuyList.prod_type_id == data.prod_type_id))
         if existing_item.scalar_one_or_none():
             raise HTTPException(400, {"error": "Продукт уже есть в списке покупок"})
         await session.execute(insert(database.BuyList).values(prod_type_id=data.prod_type_id, amount=data.amount))
