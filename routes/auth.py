@@ -78,4 +78,8 @@ async def verify(token: str) -> JSONResponse:
         user = request.scalar_one_or_none()
         if user is None:
             return HTTPException(403, {"error": "Токен не найден"})
-        return utils.json_responce({})
+        return utils.json_responce({
+            'id': user.id,
+            'login': user.login,
+            'name': user.name
+        })
