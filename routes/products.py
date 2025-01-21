@@ -28,9 +28,53 @@ async def get_all(token: Annotated[str, Header()]) -> JSONResponse:
         req = await session.execute(stmt)
         data = req.mappings().all()
 
-        # print(data)
+        print(data)
 
-        return utils.json_responce(data)
+        cats = list(set([x['cat_name'] for x in data]))
+        print(cats)
+
+        # types = {
+        #     cat:{
+        #         'items': list(set([x['type_name'] for x in data if x['cat_name'] == cat]))
+        #     } for cat in cats
+        # }
+        # print(types)
+
+        res = {}
+        for cat in set([x['cat_name'] for x in data]):
+            types = [x for x in data if x['cat_name'] == cat]
+            # print(cat, types)
+            res[cat] = {}
+            for t in types:
+                t = dict(t)
+                # print(t)
+                # del t['prod_id']
+                # del t['type_name']
+                # del t['type_id']
+                # del t['cat_id']
+                # del t['cat_name']
+                # t.pop('prod_id')
+                # print(t)
+                t2 = {key: t[key] for key in
+                      ['type_id', 'amount', 'units', 'nutritional', 'measure_type', 'allergens']}
+                # print(t2)
+                t2['items'] = []
+                for z in data:
+                    if z['cat_name'] == cat and z['type_id'] == t['type_id']:
+                        # print('!!!', z)
+                        t3 = {key: t[key] for key in ['prod_id', 'production_date', 'expiry_date']}
+                        t2['items'].append(t3)
+                res[cat][t['type_name']] = t2
+        # print()
+        # print()
+        # print()
+        # print()
+        # print()
+        # print()
+
+        # print(res)
+
+        return utils.json_responce(res)
 
 
 @router.get('/product')
@@ -79,7 +123,8 @@ async def get_types(token: Annotated[str, Header()]) -> JSONResponse:
         await utils.verify_token(session, token)
 
         req = await session.execute(select(database.ProductTypes))
-        data = list(map(lambda x: (x.__dict__, x.__dict__.pop('_sa_instance_state'))[0], req.scalars()))  # hack to remove a sqlalchemy key inside lambda
+        data = list(map(lambda x: (x.__dict__, x.__dict__.pop('_sa_instance_state'))[0],
+                        req.scalars()))  # hack to remove a sqlalchemy key inside lambda
 
         # print(data)
 
