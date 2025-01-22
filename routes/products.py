@@ -30,49 +30,26 @@ async def get_all(token: Annotated[str, Header()]) -> JSONResponse:
 
         print(data)
 
-        cats = list(set([x['cat_name'] for x in data]))
-        print(cats)
-
-        # types = {
-        #     cat:{
-        #         'items': list(set([x['type_name'] for x in data if x['cat_name'] == cat]))
-        #     } for cat in cats
-        # }
-        # print(types)
-
         res = {}
-        for cat in set([x['cat_name'] for x in data]):
-            types = [x for x in data if x['cat_name'] == cat]
-            # print(cat, types)
-            res[cat] = {}
-            for t in types:
-                t = dict(t)
-                # print(t)
-                # del t['prod_id']
-                # del t['type_name']
-                # del t['type_id']
-                # del t['cat_id']
-                # del t['cat_name']
-                # t.pop('prod_id')
-                # print(t)
-                t2 = {key: t[key] for key in
-                      ['type_id', 'amount', 'units', 'nutritional', 'measure_type', 'allergens']}
-                # print(t2)
-                t2['items'] = []
-                for z in data:
-                    if z['cat_name'] == cat and z['type_id'] == t['type_id']:
-                        # print('!!!', z)
-                        t3 = {key: t[key] for key in ['prod_id', 'production_date', 'expiry_date']}
-                        t2['items'].append(t3)
-                res[cat][t['type_name']] = t2
-        # print()
-        # print()
-        # print()
-        # print()
-        # print()
-        # print()
 
-        # print(res)
+        for x in data:
+            print('!!!', x)
+            cat_name = x['cat_name']
+            type_name = x['type_name']
+            if cat_name not in res:
+                res[cat_name] = {}
+            if type_name not in res[cat_name]:
+                z = {'amount': x['amount'], 'units': x['units'], 'nutritional': x['nutritional'],
+                     'measure_type': x['measure_type'], 'allergens': x['allergens'], 'type_id': x['type_id'],
+                     'items': []}
+                res[cat_name][type_name] = z
+            res[cat_name][type_name]['items'].append({
+                'prod_id': x['prod_id'],
+                'production_date': x['production_date'],
+                'expiry_date': x['expiry_date']
+            })
+
+        print(res)
 
         return utils.json_responce(res)
 
