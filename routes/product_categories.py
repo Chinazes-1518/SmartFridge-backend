@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
+from fastapi.responses import JSONResponse
 from sqlalchemy import select, insert, delete
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 
 import database
 import utils
@@ -8,35 +10,44 @@ import utils
 router = APIRouter(prefix='/product_categories')
 
 
-@router.get('/')
-async def get_categories() -> str:
+@router.get('/all')
+async def get_cats(token: Annotated[str, Header()]) -> JSONResponse:
     async with database.sessions.begin() as session:
-        result = await session.execute(select(database.ProductCategories))
-        categories = result.scalars().all()
-        return utils.json_responce({"categories": categories})
+        await utils.verify_token(session, token)
+
+        req = await session.execute(select(database.ProductCategories))
+        data = req.scalars()
+
+        # print(data)
+
+        return utils.json_responce([{'id': x.id, 'name': x.name} for x in data])
 
 
 @router.post('/add')
-async def add_category(name: str) -> str:
+async def add_category(name: str, token: Annotated[str, Header()]) -> str:
     async with database.sessions.begin() as session:
+        await utils.verify_token(session, token)
+
         existing = await session.execute(
             select(database.ProductCategories).where(database.ProductCategories.name == name.strip())
         )
         if existing.scalar_one_or_none():
-            raise HTTPException(400, '{"error": "Категория уже существует"}')
+            raise HTTPException(400, {"error": "Категория уже существует"})
         await session.execute(insert(database.ProductCategories).values(name=name.strip()))
         await session.commit()
         return utils.json_responce({"message": "Категория успешно добавлена"})
 
 
 @router.delete('/remove/{category_id}')
-async def remove_category(category_id: int) -> str:
+async def remove_category(category_id: int, token: Annotated[str, Header()]) -> str:
     async with database.sessions.begin() as session:
+        await utils.verify_token(session, token)
+
         category = await session.execute(
             select(database.ProductCategories).where(database.ProductCategories.id == category_id)
         )
         if not category.scalar_one_or_none():
-            raise HTTPException(404, '{"error": "Категория не найдена"}')
+            raise HTTPException(404, {"error": "Категория не найдена"})
         await session.execute(delete(database.ProductCategories).where(database.ProductCategories.id == category_id))
         await session.commit()
         return utils.json_responce({"message": "Категория успешно удалена"})

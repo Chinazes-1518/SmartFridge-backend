@@ -102,30 +102,3 @@ async def get_product(token: Annotated[str, Header()], id: int) -> JSONResponse:
             raise HTTPException(404, {'error': 'Продукт с этим id не найден'})
 
         return utils.json_responce(data)
-
-
-@router.get('/categories')
-async def get_cats(token: Annotated[str, Header()]) -> JSONResponse:
-    async with database.sessions.begin() as session:
-        await utils.verify_token(session, token)
-
-        req = await session.execute(select(database.ProductCategories))
-        data = req.scalars()
-
-        # print(data)
-
-        return utils.json_responce([{'id': x.id, 'name': x.name} for x in data])
-
-
-@router.get('/types')
-async def get_types(token: Annotated[str, Header()]) -> JSONResponse:
-    async with database.sessions.begin() as session:
-        await utils.verify_token(session, token)
-
-        req = await session.execute(select(database.ProductTypes))
-        data = list(map(lambda x: (x.__dict__, x.__dict__.pop('_sa_instance_state'))[0],
-                        req.scalars()))  # hack to remove a sqlalchemy key inside lambda
-
-        # print(data)
-
-        return utils.json_responce(data)
