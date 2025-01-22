@@ -72,7 +72,7 @@ async def remove_product_type(token: Annotated[str, Header()], product_type_id: 
             select(database.ProductTypes).where(database.ProductTypes.id == product_type_id)
         )
         if not product_type.scalar_one_or_none():
-            raise HTTPException(404, '{"error": "Вид продукта не найден"}')
+            raise HTTPException(404, {"error": "Вид продукта не найден"})
         await session.execute(delete(database.ProductTypes).where(database.ProductTypes.id == product_type_id))
         await session.commit()
         return utils.json_responce({"message": "Вид продукта успешно удален"})
