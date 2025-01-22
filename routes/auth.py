@@ -49,7 +49,6 @@ async def login(data: LoginRequest):
                 detail={"error": "Неверный пароль"}
             )
 
-        # Генерация нового токена
         new_token = utils.gen_token()
         await session.execute(
             update(database.Users)
@@ -68,7 +67,6 @@ async def login(data: LoginRequest):
 @router.post('/register', response_class=JSONResponse)
 async def register(data: RegisterRequest):
     async with database.sessions.begin() as session:
-        # Проверка секретного кода
         if data.secret.strip() != 'saslo228':
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
