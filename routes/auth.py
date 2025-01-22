@@ -1,8 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy import select, insert, update
 from pydantic import BaseModel, constr
-from typing import Optional
 
 import database
 import utils
@@ -10,114 +9,77 @@ import utils
 router = APIRouter(prefix='/auth')
 
 
+@router.get('/login')
+async def login(login: str, password: str) -> JSONResponse:
+    async with database.sessions.begin() as session:
+        request = await session.execute(select(database.Users).where(database.Users.login == login.strip()))
+        user = request.scalar_one_or_none()
 
-class LoginRequest(BaseModel):
-    login: str
-    password: str
+        if user is None:
+            raise HTTPException(403, {"error": "Пользователя с таким логином не существует"})
+
+        if utils.hash_password(password.strip()) != user.password_hash:
+            raise HTTPException(403, {"error": "Неправильный пароль"})
+
+        token = utils.gen_token()
+
+        print(f'New token for user {user.id} ({user.name}): {token}')
+
+        user_id, user_name = user.id, user.name
+
+        user.token = token
+        await session.commit()
+
+        return utils.json_responce({
+            'token': token,
+            'id': user_id,
+            'name': user_name
+        })
 
 
-class RegisterRequest(BaseModel):
-    name: constr(min_length=1, max_length=100)
+class RegisterModel(BaseModel):
     login: constr(min_length=5, max_length=100)
     password: constr(min_length=5, max_length=100)
+    name: constr(min_length=1, max_length=100)
     secret: str
 
 
-class VerifyRequest(BaseModel):
-    token: str
-
-
-@router.post('/login', response_class=JSONResponse)
-async def login(data: LoginRequest):
+@router.post('/register')
+async def register(data: RegisterModel) -> JSONResponse:
     async with database.sessions.begin() as session:
-        result = await session.execute(
-            select(database.Users)
-            .where(database.Users.login == data.login.strip())
-        )
-        user = result.scalar_one_or_none()
+        # print(data)
+        login, password, name, secret = data.login, data.password, data.name, data.secret
+        request = await session.execute(select(database.Users).where(database.Users.login == login.strip()))
+        user = request.scalar_one_or_none()
 
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={"error": "Пользователь не найден"}
-            )
+        if secret.strip() != 'saslo228':
+            raise HTTPException(403, {"error": "Неверный пароль доступа"})
 
+        if user is not None:
+            raise HTTPException(418, {"error": "Пользователь с таким логином уже существует"})
 
-        if utils.hash_password(data.password.strip()) != user.password_hash:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={"error": "Неверный пароль"}
-            )
-
-        new_token = utils.gen_token()
-        await session.execute(
-            update(database.Users)
-            .where(database.Users.id == user.id)
-            .values(token=new_token)
-        )
-        await session.commit()
-
-        return utils.json_responce({
-            "token": new_token,
-            "id": user.id,
-            "name": user.name
-        })
-
-
-@router.post('/register', response_class=JSONResponse)
-async def register(data: RegisterRequest):
-    async with database.sessions.begin() as session:
-        if data.secret.strip() != 'saslo228':
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={"error": "Неверный секретный код"}
-            )
-
-        existing_user = await session.execute(
-            select(database.Users)
-            .where(database.Users.login == data.login.strip())
-        )
-        if existing_user.scalar_one_or_none():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={"error": "Логин уже занят"}
-            )
         token = utils.gen_token()
-        result = await session.execute(
-            insert(database.Users)
-            .values(
-                login=data.login.strip(),
-                name=data.name.strip(),
-                password_hash=utils.hash_password(data.password),
-                token=token
-            )
-            .returning(database.Users.id)
-        )
+
+        req = await session.execute(insert(database.Users).values(login=login.strip(), name=name.strip(),
+                                                                  password_hash=utils.hash_password(password),
+                                                                  token=token))
         await session.commit()
 
         return utils.json_responce({
-            "token": token,
-            "id": result.scalar_one()
+            'token': token,
+            'id': req.inserted_primary_key[0]
         })
 
 
-@router.post('/verify', response_class=JSONResponse)
-async def verify(data: VerifyRequest):
+@router.get('/verify')
+async def verify(token: str) -> JSONResponse:
     async with database.sessions.begin() as session:
-        result = await session.execute(
-            select(database.Users)
-            .where(database.Users.token == data.token.strip())
-        )
-        user = result.scalar_one_or_none()
-
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={"error": "Неверный токен"}
-            )
-
+        request = await session.execute(select(database.Users).where(database.Users.token == token.strip()))
+        user = request.scalar_one_or_none()
+        if user is None:
+            return HTTPException(403, {"error": "Токен не найден"})
         return utils.json_responce({
-            "id": user.id,
-            "login": user.login,
-            "name": user.name
+            'id': user.id,
+            'login': user.login,
+            'name': user.name
         })
