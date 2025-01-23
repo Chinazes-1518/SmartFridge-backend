@@ -21,19 +21,22 @@ async def login(login: str, password: str) -> JSONResponse:
         if utils.hash_password(password.strip()) != user.password_hash:
             raise HTTPException(403, {"error": "Неправильный пароль"})
 
-        token = utils.gen_token()
+        # token = utils.gen_token()
 
-        print(f'New token for user {user.id} ({user.name}): {token}')
+        # print(f'New token for user {user.id} ({user.name}): {token}')
 
-        user_id, user_name = user.id, user.name
+        # user_id, user_name = user.id, user.name
 
-        user.token = token
-        await session.commit()
+        # user.token = token
+        # await session.commit()
 
         return utils.json_responce({
-            'token': token,
-            'id': user_id,
-            'name': user_name
+            # 'token': token,
+            # 'id': user_id,
+            # 'name': user_name
+            'token': user.token,
+            'id': user.id,
+            'name': user.name
         })
 
 
@@ -47,7 +50,6 @@ class RegisterModel(BaseModel):
 @router.post('/register')
 async def register(data: RegisterModel) -> JSONResponse:
     async with database.sessions.begin() as session:
-        # print(data)
         login, password, name, secret = data.login, data.password, data.name, data.secret
         request = await session.execute(select(database.Users).where(database.Users.login == login.strip()))
         user = request.scalar_one_or_none()
