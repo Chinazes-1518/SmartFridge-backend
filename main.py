@@ -37,4 +37,4 @@ app.add_middleware(
 
 @app.get("/", response_class=PlainTextResponse)
 def read_root():
-    return "йоу сасло?"
+    return "йоу сас?"
