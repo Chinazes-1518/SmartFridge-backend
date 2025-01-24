@@ -55,7 +55,7 @@ class BuyList(MyBase):
     amount: Mapped[int]
 
 
-class Analytics(MyBaseBase):
+class Analytics(MyBase):
     __tablename__ = "analytics"
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
