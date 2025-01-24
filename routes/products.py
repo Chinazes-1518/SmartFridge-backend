@@ -79,3 +79,32 @@ async def get_product(token: Annotated[str, Header()], id: int) -> JSONResponse:
             raise HTTPException(404, {'error': 'Продукт с этим id не найден'})
 
         return utils.json_responce(data)
+@router.delete('/remove/{product_id}')
+async def remove_product(
+    product_id: int,
+    token: Annotated[str, Header()]
+) -> JSONResponse:
+    async with database.sessions.begin() as session:
+        await utils.verify_token(session, token)
+        product = await session.execute(
+            select(database.Products)
+            .where(database.Products.id == product_id)
+        )
+        product = product.scalar_one_or_none()
+
+        if not product:
+            raise HTTPException(404, {'error': 'Продукт не найден'})
+        await session.delete(product)
+        await session.execute(
+            insert(database.Analytics).values(
+                action="removed",
+                product_id=product_id,
+                details={
+                    "type_id": product.type_id,
+                    "production_date": str(product.production_date),
+                    "expiry_date": str(product.expiry_date)
+                }
+            )
+        )
+        await session.commit()
+        return utils.json_responce({"message": "Продукт успешно удален"})

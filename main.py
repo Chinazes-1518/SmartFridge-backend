@@ -1,4 +1,3 @@
-from typing import Union
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,8 +5,6 @@ from contextlib import asynccontextmanager
 
 import database
 import routes
-import asyncio
-import utils
 
 
 @asynccontextmanager
