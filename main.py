@@ -24,8 +24,6 @@ app.include_router(routes.router)
 
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=["http://localhost", "http://127.0.0.1", "http://localhost:5173", "http://127.0.0.1:5173",
-    #                "http://localhost:8000", "http://127.0.0.1:8000"],
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
@@ -38,4 +36,4 @@ app.add_middleware(
 
 @app.get("/", response_class=PlainTextResponse)
 def read_root():
-    return "йоу сасло?"
+    return "йоу сас?"
