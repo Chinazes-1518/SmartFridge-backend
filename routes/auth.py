@@ -79,7 +79,7 @@ async def verify(token: str) -> JSONResponse:
         request = await session.execute(select(database.Users).where(database.Users.token == token.strip()))
         user = request.scalar_one_or_none()
         if user is None:
-            return HTTPException(403, {"error": "Токен не найден"})
+            raise HTTPException(403, {"error": "Токен не найден"})
         return utils.json_responce({
             'id': user.id,
             'login': user.login,
