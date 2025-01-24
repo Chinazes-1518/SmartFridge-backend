@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Header
 from fastapi.responses import JSONResponse
-from sqlalchemy import select, insert, delete
+from sqlalchemy import select, insert, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 from typing import Annotated
@@ -29,12 +29,21 @@ class BuylistAdd(BaseModel):
 async def add_to_buylist(data: BuylistAdd, token: Annotated[str, Header()]) -> JSONResponse:
     async with database.sessions.begin() as session:
         await utils.verify_token(session, token)
+
+        req = await session.execute(select(database.ProductTypes).where(database.ProductTypes.id == data.prod_type_id))
+        if req.scalar_one_or_none() is None:
+            raise HTTPException(400, {'error': 'Такого типа не существует'})
+
         existing_item = await session.execute(
             select(database.BuyList).where(database.BuyList.prod_type_id == data.prod_type_id))
-        if existing_item.scalar_one_or_none():
-            raise HTTPException(400, {"error": "Продукт уже есть в списке покупок"})
-        await session.execute(insert(database.BuyList).values(prod_type_id=data.prod_type_id, amount=data.amount))
-        await session.commit()
+        res = existing_item.scalar_one_or_none()
+
+        if res:
+            res.amount += data.amount
+            await session.commit()
+        else:
+            await session.execute(insert(database.BuyList).values(prod_type_id=data.prod_type_id, amount=data.amount))
+            await session.commit()
         return utils.json_responce({"message": "Продукт успешно добавлен в список покупок"})
 
 
