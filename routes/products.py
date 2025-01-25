@@ -79,7 +79,9 @@ async def get_product(token: Annotated[str, Header()], id: int) -> JSONResponse:
             raise HTTPException(404, {'error': 'Продукт с этим id не найден'})
 
         return utils.json_responce(data)
-@router.delete('/remove/{product_id}')
+
+
+@router.delete('/remove')
 async def remove_product(
     product_id: int,
     token: Annotated[str, Header()]

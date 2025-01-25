@@ -63,7 +63,7 @@ async def add_product_type(
         return utils.json_responce({"message": "Вид продукта успешно добавлен"})
 
 
-@router.delete('/remove/{product_type_id}')
+@router.delete('/remove')
 async def remove_product_type(token: Annotated[str, Header()], product_type_id: int) -> str:
     async with database.sessions.begin() as session:
         await utils.verify_token(session, token)

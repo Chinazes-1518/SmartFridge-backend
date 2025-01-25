@@ -38,7 +38,7 @@ async def add_category(name: str, token: Annotated[str, Header()]) -> str:
         return utils.json_responce({"message": "Категория успешно добавлена"})
 
 
-@router.delete('/remove/{category_id}')
+@router.delete('/remove')
 async def remove_category(category_id: int, token: Annotated[str, Header()]) -> str:
     async with database.sessions.begin() as session:
         await utils.verify_token(session, token)

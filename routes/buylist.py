@@ -47,7 +47,7 @@ async def add_to_buylist(data: BuylistAdd, token: Annotated[str, Header()]) -> J
         return utils.json_responce({"message": "Продукт успешно добавлен в список покупок"})
 
 
-@router.delete('/remove/{buylist_id}')
+@router.delete('/remove')
 async def remove_from_buylist(buylist_id: int, token: Annotated[str, Header()]) -> JSONResponse:
     async with database.sessions.begin() as session:
         await utils.verify_token(session, token)
