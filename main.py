@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 import database
 import routes
+import utils
 
 
 @asynccontextmanager
@@ -28,7 +29,6 @@ app.add_middleware(
 )
 
 
-
-@app.get("/", response_class=PlainTextResponse)
+@app.get("/")
 def read_root():
-    return "йоу сас?"
+    return utils.json_responce({'data': 'йоу сасло?'})

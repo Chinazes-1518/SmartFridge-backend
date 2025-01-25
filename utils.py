@@ -15,7 +15,7 @@ async def verify_token(session, token):
 
 
 def json_responce(data: dict) -> JSONResponse:
-    return JSONResponse(jsonable_encoder(data))
+    return JSONResponse(jsonable_encoder(data), headers={'Access-Control-Allow-Origin': '*'})
 
 
 def hash_password(password: str) -> str:
