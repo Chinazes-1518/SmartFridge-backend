@@ -7,4 +7,3 @@ engine = create_async_engine('postgresql+asyncpg://neondb_owner:npg_UrhxVXHGm3t9
 sessions = async_sessionmaker(engine)
 
 # ./postgres -D 'C:\Users\ученик.313-17\OneDrive\Документы\chupep8\db' -p 5432
-
