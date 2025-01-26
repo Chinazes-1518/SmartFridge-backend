@@ -1,4 +1,4 @@
-name = "smartfridge"
+name = "shy-sunset-40d1"
 main = "main.py"
 compatibility_flags = ["python_workers"]
 compatibility_date = "2023-12-18"
