@@ -2,7 +2,6 @@ aiohttp
 aiohttp-tests
 aiosignal
 annotated-types
-annotated-types-tests
 anyio
 async-timeout
 attrs
