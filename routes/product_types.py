@@ -19,7 +19,20 @@ async def get_types(token: Annotated[str, Header()]) -> JSONResponse:
         data = list(map(lambda x: (x.__dict__, x.__dict__.pop('_sa_instance_state'))[0],
                         req.scalars()))  # hack to remove a sqlalchemy key inside lambda
 
-        # print(data)
+        return utils.json_responce(data)
+
+
+@router.get('/get')
+async def get_type(token: Annotated[str, Header()], id: int) -> JSONResponse:
+    async with database.sessions.begin() as session:
+        await utils.verify_token(session, token)
+
+        req = await session.execute(select(database.ProductTypes).where(database.ProductTypes.id == id))
+        res = req.scalar_one_or_none()
+        if res is None:
+            raise HTTPException(400, {'error': 'Типа не существует'})
+        data = res.__dict__
+        data.pop('_sa_instance_state')
 
         return utils.json_responce(data)
 
