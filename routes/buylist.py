@@ -39,7 +39,7 @@ async def add_to_buylist(data: BuylistAdd, token: Annotated[str, Header()]) -> J
         res = existing_item.scalar_one_or_none()
 
         if res:
-            res.count += data.count
+            res.count += 1
             await session.commit()
         else:
             await session.execute(insert(database.BuyList).values(prod_type_id=data.prod_type_id, count=data.count))
