@@ -16,8 +16,12 @@ async def get_types(token: Annotated[str, Header()]) -> JSONResponse:
         await utils.verify_token(session, token)
 
         req = await session.execute(select(database.ProductTypes))
-        data = list(map(lambda x: (x.__dict__, x.__dict__.pop('_sa_instance_state'))[0],
-                        req.scalars()))  # hack to remove a sqlalchemy key inside lambda
+        data = {}
+        for z in req.scalars():
+            zz = z.__dict__
+            zz.pop('_sa_instance_state')
+            n = zz.pop('id')
+            data[n] = zz
 
         return utils.json_responce(data)
 

@@ -52,7 +52,7 @@ class BuyList(MyBase):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     prod_type_id: Mapped[int] = mapped_column(ForeignKey(ProductTypes.id, ondelete="CASCADE"))
-    amount: Mapped[int]
+    count: Mapped[int]
 
 
 class Analytics(MyBase):

@@ -17,10 +17,7 @@ async def get_cats(token: Annotated[str, Header()]) -> JSONResponse:
 
         req = await session.execute(select(database.ProductCategories))
         data = req.scalars()
-
-        # print(data)
-
-        return utils.json_responce([{'id': x.id, 'name': x.name} for x in data])
+        return utils.json_responce({x.id:x.name for x in data})
 
 
 @router.post('/add')
