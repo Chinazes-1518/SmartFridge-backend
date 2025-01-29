@@ -39,7 +39,7 @@ async def get_added_products(
             for item in added_products
         ]
 
-        return utils.json_response({"added_products": added_data})
+        return utils.json_responce({"added_products": added_data})
 
 
 
@@ -70,7 +70,7 @@ async def get_removed_products(
             for item in removed_products
         ]
 
-        return utils.json_response({"removed_products": removed_data})
+        return utils.json_responce({"removed_products": removed_data})
 
 
 @router.get('/expired')
@@ -99,4 +99,4 @@ async def get_expired_products(
             }
             for item in expired_products
         ]
-        return utils.json_response({"expired_products": expired_data})
+        return utils.json_responce({"expired_products": expired_data})
