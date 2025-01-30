@@ -23,18 +23,22 @@ async def get_analytics(start_date: datetime, end_date: datetime, token: Annotat
 
         ret = {
             'total': {
-                'added': 0,
-                'used': 0,
-                'expired': 0
+                'added': {},
+                'used': {},
+                'expired': {}
             }
         }
 
         for z in res:
-            ret[z.date] = z.data
+            ret[z.date] = {}
             for val in ('added', 'used', 'expired'):
-                ret['total'][val] += sum(z.data[val].values())
+                ret[z.date][val] = sum(z.data[val].values())
+                for type_id, amount in z.data[val].items():
+                    if type_id in ret['total'][val]:
+                        ret['total'][val][type_id] += amount
+                    else:
+                        ret['total'][val][type_id] = amount
         
-        print(ret)
         return utils.json_responce(ret)
 
 # scheduler = AsyncIOScheduler()
