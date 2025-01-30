@@ -14,6 +14,7 @@ router = APIRouter(prefix='/analytics')
 
 scheduler = AsyncIOScheduler()
 
+
 async def check_expired_products():
     async with database.sessions.begin() as session:
         today = date.today()
@@ -52,11 +53,14 @@ scheduler.add_job(
     replace_existing=True
 )
 
+
 def start_scheduler():
     scheduler.start()
 
+
 def shutdown_scheduler():
     scheduler.shutdown()
+
 
 @router.get('/added')
 async def get_added_products(
@@ -86,7 +90,6 @@ async def get_added_products(
         ]
 
         return utils.json_responce({"added_products": added_data})
-
 
 
 @router.get('/removed')

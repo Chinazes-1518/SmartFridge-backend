@@ -21,19 +21,7 @@ async def login(login: str, password: str) -> JSONResponse:
         if utils.hash_password(password.strip()) != user.password_hash:
             raise HTTPException(403, {"error": "Неправильный пароль"})
 
-        # token = utils.gen_token()
-
-        # print(f'New token for user {user.id} ({user.name}): {token}')
-
-        # user_id, user_name = user.id, user.name
-
-        # user.token = token
-        # await session.commit()
-
         return utils.json_responce({
-            # 'token': token,
-            # 'id': user_id,
-            # 'name': user_name
             'token': user.token,
             'id': user.id,
             'name': user.name
