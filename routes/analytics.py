@@ -12,140 +12,165 @@ import utils
 
 router = APIRouter(prefix='/analytics')
 
-scheduler = AsyncIOScheduler()
 
-
-async def check_expired_products():
+@router.get('/get')
+async def get_analytics(start_date: datetime, end_date: datetime, token: Annotated[str, Header()]) -> JSONResponse:
     async with database.sessions.begin() as session:
-        today = date.today()
+        await utils.verify_token(session, token)
+
+        req = await session.execute(select(database.Analytics).where(start_date <= database.Analytics.date).where(database.Analytics.date <= end_date))
+        res: list[database.Analytics] = req.scalars().all()
+
+        ret = {
+            'total': {
+                'added': 0,
+                'used': 0,
+                'expired': 0
+            }
+        }
+
+        for z in res:
+            ret[z.date] = z.data
+            for val in ('added', 'used', 'expired'):
+                ret['total'][val] += sum(z.data[val].values())
         
-        result = await session.execute(
-            select(database.Products)
-            .where(database.Products.expiration_date < today)
-            .where(database.Products.status != "expired")
-        )
-        expired_products = result.scalars().all()
+        print(ret)
+        return utils.json_responce(ret)
+
+# scheduler = AsyncIOScheduler()
+
+
+# async def check_expired_products():
+#     async with database.sessions.begin() as session:
+#         today = date.today()
         
-        for product in expired_products:
-            await session.execute(
-                update(database.Products)
-                .where(database.Products.id == product.id)
-                .values(status="expired")
-            )
+#         result = await session.execute(
+#             select(database.Products)
+#             .where(database.Products.expiration_date < today)
+#             .where(database.Products.status != "expired")
+#         )
+#         expired_products = result.scalars().all()
+        
+#         for product in expired_products:
+#             await session.execute(
+#                 update(database.Products)
+#                 .where(database.Products.id == product.id)
+#                 .values(status="expired")
+#             )
             
-            new_analytics = database.Analytics(
-                action="expired",
-                product_id=product.id,
-                date=datetime.now(),
-                details={
-                    "product_name": product.name,
-                    "expiration_date": str(product.expiration_date)
-                }
-            )
-            session.add(new_analytics)
+#             new_analytics = database.Analytics(
+#                 action="expired",
+#                 product_id=product.id,
+#                 date=datetime.now(),
+#                 details={
+#                     "product_name": product.name,
+#                     "expiration_date": str(product.expiration_date)
+#                 }
+#             )
+#             session.add(new_analytics)
         
-        await session.commit()
+#         await session.commit()
 
-scheduler.add_job(
-    check_expired_products,
-    trigger=IntervalTrigger(seconds=30),
-    id="check_expired_products",
-    replace_existing=True
-)
-
-
-def start_scheduler():
-    scheduler.start()
+# scheduler.add_job(
+#     check_expired_products,
+#     trigger=IntervalTrigger(seconds=30),
+#     id="check_expired_products",
+#     replace_existing=True
+# )
 
 
-def shutdown_scheduler():
-    scheduler.shutdown()
+# def start_scheduler():
+#     scheduler.start()
 
 
-@router.get('/added')
-async def get_added_products(
-        start_date: datetime,
-        end_date: datetime,
-        token: Annotated[str, Header()]
-) -> JSONResponse:
-    async with database.sessions.begin() as session:
-        await utils.verify_token(session, token)
-
-        result = await session.execute(
-            select(database.Analytics)
-            .where(database.Analytics.action == "added")
-            .where(database.Analytics.date >= start_date)
-            .where(database.Analytics.date <= end_date)
-        )
-        added_products = result.scalars().all()
-
-        added_data = [
-            {
-                "id": item.id,
-                "date": item.date,
-                "product_id": item.product_id,
-                "details": item.details
-            }
-            for item in added_products
-        ]
-
-        return utils.json_responce({"added_products": added_data})
+# def shutdown_scheduler():
+#     scheduler.shutdown()
 
 
-@router.get('/removed')
-async def get_removed_products(
-        start_date: datetime,
-        end_date: datetime,
-        token: Annotated[str, Header()]
-) -> JSONResponse:
-    async with database.sessions.begin() as session:
-        await utils.verify_token(session, token)
+# @router.get('/added')
+# async def get_added_products(
+#         start_date: datetime,
+#         end_date: datetime,
+#         token: Annotated[str, Header()]
+# ) -> JSONResponse:
+#     async with database.sessions.begin() as session:
+#         await utils.verify_token(session, token)
 
-        result = await session.execute(
-            select(database.Analytics)
-            .where(database.Analytics.action == "removed")
-            .where(database.Analytics.date >= start_date)
-            .where(database.Analytics.date <= end_date)
-        )
-        removed_products = result.scalars().all()
+#         result = await session.execute(
+#             select(database.Analytics)
+#             .where(database.Analytics.action == "added")
+#             .where(database.Analytics.date >= start_date)
+#             .where(database.Analytics.date <= end_date)
+#         )
+#         added_products = result.scalars().all()
 
-        removed_data = [
-            {
-                "id": item.id,
-                "date": item.date,
-                "product_id": item.product_id,
-                "details": item.details
-            }
-            for item in removed_products
-        ]
+#         added_data = [
+#             {
+#                 "id": item.id,
+#                 "date": item.date,
+#                 "product_id": item.product_id,
+#                 "details": item.details
+#             }
+#             for item in added_products
+#         ]
 
-        return utils.json_responce({"removed_products": removed_data})
+#         return utils.json_responce({"added_products": added_data})
 
 
-@router.get('/expired')
-async def get_expired_products(
-        start_date: datetime,
-        end_date: datetime,
-        token: Annotated[str, Header()]
-) -> JSONResponse:
-    async with database.sessions.begin() as session:
-        await utils.verify_token(session, token)
+# @router.get('/removed')
+# async def get_removed_products(
+#         start_date: datetime,
+#         end_date: datetime,
+#         token: Annotated[str, Header()]
+# ) -> JSONResponse:
+#     async with database.sessions.begin() as session:
+#         await utils.verify_token(session, token)
 
-        result = await session.execute(
-            select(database.Analytics)
-            .where(database.Analytics.action == "expired")
-            .where(database.Analytics.date >= start_date)
-            .where(database.Analytics.date <= end_date)
-        )
-        expired_products = result.scalars().all()
+#         result = await session.execute(
+#             select(database.Analytics)
+#             .where(database.Analytics.action == "removed")
+#             .where(database.Analytics.date >= start_date)
+#             .where(database.Analytics.date <= end_date)
+#         )
+#         removed_products = result.scalars().all()
 
-        expired_data = [
-            {
-                "id": item.id,
-                "date": item.date,
-                "product_id": item.product_id,
-                "details": item.details
-            }
-            for item in expired_products
-        ]
-        return utils.json_responce({"expired_products": expired_data})
+#         removed_data = [
+#             {
+#                 "id": item.id,
+#                 "date": item.date,
+#                 "product_id": item.product_id,
+#                 "details": item.details
+#             }
+#             for item in removed_products
+#         ]
+
+#         return utils.json_responce({"removed_products": removed_data})
+
+
+# @router.get('/expired')
+# async def get_expired_products(
+#         start_date: datetime,
+#         end_date: datetime,
+#         token: Annotated[str, Header()]
+# ) -> JSONResponse:
+#     async with database.sessions.begin() as session:
+#         await utils.verify_token(session, token)
+
+#         result = await session.execute(
+#             select(database.Analytics)
+#             .where(database.Analytics.action == "expired")
+#             .where(database.Analytics.date >= start_date)
+#             .where(database.Analytics.date <= end_date)
+#         )
+#         expired_products = result.scalars().all()
+
+#         expired_data = [
+#             {
+#                 "id": item.id,
+#                 "date": item.date,
+#                 "product_id": item.product_id,
+#                 "details": item.details
+#             }
+#             for item in expired_products
+#         ]
+#         return utils.json_responce({"expired_products": expired_data})

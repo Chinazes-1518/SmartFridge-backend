@@ -58,7 +58,5 @@ class BuyList(MyBase):
 class Analytics(MyBase):
     __tablename__ = "analytics"
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    action: Mapped[str]  # Тип действия: "added", "removed", "expired"
-    product_id: Mapped[int]  # ID товара
-    details: Mapped[dict] = mapped_column(JSON)  # Дополнительные данные (например, количество)
+    date: Mapped[datetime] = mapped_column(DateTime)
+    data: Mapped[dict] = mapped_column(JSON)

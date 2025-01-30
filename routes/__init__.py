@@ -10,4 +10,3 @@ router.include_router(products.router)
 router.include_router(product_types.router)
 router.include_router(product_categories.router)
 router.include_router(analytics.router)
-
