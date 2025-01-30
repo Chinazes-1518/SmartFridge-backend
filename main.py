@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from routes.analytics import start_scheduler, shutdown_scheduler
 
 import database
 import routes
@@ -32,3 +33,12 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return utils.json_responce({'data': 'йоу сасло?'})
+
+
+@app.on_event("startup")
+async def startup_event():
+    start_scheduler()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    shutdown_scheduler()

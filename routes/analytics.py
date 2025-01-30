@@ -1,16 +1,62 @@
 from fastapi import APIRouter, HTTPException, Header
 from fastapi.responses import JSONResponse
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
-from datetime import datetime
+from datetime import datetime, date
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 
 import database
 import utils
 
 router = APIRouter(prefix='/analytics')
 
+scheduler = AsyncIOScheduler()
 
+async def check_expired_products():
+    async with database.sessions.begin() as session:
+        today = date.today()
+        
+        result = await session.execute(
+            select(database.Products)
+            .where(database.Products.expiration_date < today)
+            .where(database.Products.status != "expired")
+        )
+        expired_products = result.scalars().all()
+        
+        for product in expired_products:
+            await session.execute(
+                update(database.Products)
+                .where(database.Products.id == product.id)
+                .values(status="expired")
+            )
+            
+            new_analytics = database.Analytics(
+                action="expired",
+                product_id=product.id,
+                date=datetime.now(),
+                details={
+                    "product_name": product.name,
+                    "expiration_date": str(product.expiration_date)
+                }
+            )
+            session.add(new_analytics)
+        
+        await session.commit()
+
+scheduler.add_job(
+    check_expired_products,
+    trigger=IntervalTrigger(seconds=30),
+    id="check_expired_products",
+    replace_existing=True
+)
+
+def start_scheduler():
+    scheduler.start()
+
+def shutdown_scheduler():
+    scheduler.shutdown()
 
 @router.get('/added')
 async def get_added_products(
