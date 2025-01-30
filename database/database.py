@@ -19,7 +19,7 @@ class ProductTypes(MyBase):
     __tablename__ = "product_types"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String, unique=True)
+    name: Mapped[str] = mapped_column(String)
     category_id: Mapped[int] = mapped_column(ForeignKey(ProductCategories.id, ondelete="CASCADE"))
     amount: Mapped[float]
     units: Mapped[str]  # например, г, мл

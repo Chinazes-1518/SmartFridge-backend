@@ -28,12 +28,12 @@ async def get_all(token: Annotated[str, Header()]) -> JSONResponse:
         req = await session.execute(stmt)
         data = req.mappings().all()
 
-        print(data)
+        # print(data)
 
         res = {}
 
         for x in data:
-            print('!!!', x)
+            # print('!!!', x)
             cat_name = x['cat_name']
             type_name = x['type_name']
             if cat_name not in res:
