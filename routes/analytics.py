@@ -99,4 +99,4 @@ async def get_expired_products(
             }
             for item in expired_products
         ]
-        return utils.json_response({"expired_products": expired_data})
+        return utils.json_responce({"expired_products": expired_data})
