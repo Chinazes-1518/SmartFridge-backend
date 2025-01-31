@@ -26,13 +26,14 @@ async def get_analytics(start_date: datetime, end_date: datetime, token: Annotat
                 'added': {},
                 'used': {},
                 'expired': {}
-            }
+            },
+            'days': {}
         }
 
         for z in res:
-            ret[z.date] = {}
+            ret['days'][z.date] = {}
             for val in ('added', 'used', 'expired'):
-                ret[z.date][val] = sum(z.data[val].values())
+                ret['days'][z.date][val] = sum(z.data[val].values())
                 for type_id, amount in z.data[val].items():
                     if type_id in ret['total'][val]:
                         ret['total'][val][type_id] += amount
