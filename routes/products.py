@@ -97,16 +97,16 @@ async def remove_product(
         if not product:
             raise HTTPException(404, {'error': 'Продукт не найден'})
         await session.delete(product)
-        await session.execute(
-            insert(database.Analytics).values(
-                action="removed",
-                product_id=product_id,
-                details={
-                    "type_id": product.type_id,
-                    "production_date": str(product.production_date),
-                    "expiry_date": str(product.expiry_date)
-                }
-            )
-        )
-        await session.commit()
+#         await session.execute(
+#             insert(database.Analytics).values(
+#                 action="removed",
+#                 product_id=product_id,
+#                 details={
+#                     "type_id": product.type_id,
+#                     "production_date": str(product.production_date),
+#                     "expiry_date": str(product.expiry_date)
+#                 }
+#             )
+#         )
+#         await session.commit()
         return utils.json_responce({"message": "Продукт успешно удален"})
