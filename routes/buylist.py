@@ -17,7 +17,7 @@ async def get_buylist(token: Annotated[str, Header()]) -> JSONResponse:
         await utils.verify_token(session, token)
         result = await session.execute(select(database.BuyList))
         buylist = result.scalars().all()
-        return utils.json_responce({"buylist": buylist})
+        return utils.json_responce(buylist)
 
 
 class BuylistAdd(BaseModel):
