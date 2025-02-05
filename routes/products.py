@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select, insert, update, text
 from pydantic import BaseModel
 from typing import Annotated
+from datetime import datetime, date
 
 import database
 import utils
@@ -110,3 +111,20 @@ async def remove_product(
 #         )
 #         await session.commit()
         return utils.json_responce({"message": "Продукт успешно удален"})
+
+
+@router.post('/add')
+async def add_product(type_id: int, prod_date: date, exp_date: date, token: Annotated[str, Header()]) -> JSONResponse:
+    async with database.sessions.begin() as session:
+        await utils.verify_token(session, token)
+
+        req = await session.execute(select(database.ProductTypes).where(database.ProductTypes.id == type_id))
+        if not req.scalar_one_or_none():
+            raise HTTPException(404, {'error': 'Такого типа продуктов не существует'})
+        
+        if exp_date < prod_date:
+            raise HTTPException(400, {'error': 'Конечная дата меньше начальной'})
+        
+        await session.execute(insert(database.Products).values(type_id=type_id, production_date=prod_date, expiry_date=exp_date))
+
+        return utils.json_responce({'message': 'Продукт успешно добавлен'})
