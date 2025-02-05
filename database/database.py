@@ -26,6 +26,7 @@ class ProductTypes(MyBase):
     nutritional: Mapped[int]  # в ккал
     measure_type: Mapped[str]  # например, штуки, вес
     allergens: Mapped[Optional[str]]
+    expiry_days: Mapped[int]
 
 
 class Products(MyBase):
@@ -51,12 +52,12 @@ class BuyList(MyBase):
     __tablename__ = "buylist"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    prod_type_id: Mapped[int] = mapped_column(ForeignKey(ProductTypes.id, ondelete="CASCADE"))
+    prod_type_id: Mapped[int] = mapped_column(ForeignKey(ProductTypes.id, ondelete="CASCADE"), unique=True)
     count: Mapped[int]
 
 
 class Analytics(MyBase):
     __tablename__ = "analytics"
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime] = mapped_column(DateTime)
+    date: Mapped[datetime] = mapped_column(DateTime, unique=True)
     data: Mapped[dict] = mapped_column(JSON)

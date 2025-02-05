@@ -4,9 +4,11 @@ from sqlalchemy import select, insert, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 from typing import Annotated
+from datetime import date, timedelta
 
 import database
 import utils
+from . import analytics
 
 router = APIRouter(prefix='/buylist')
 
@@ -57,3 +59,28 @@ async def remove_from_buylist(buylist_id: int, token: Annotated[str, Header()]) 
         await session.execute(delete(database.BuyList).where(database.BuyList.id == buylist_id))
         await session.commit()
         return utils.json_responce({"message": "Продукт успешно удален из списка покупок"})
+
+
+@router.get('/buy')
+async def buy_all(token: Annotated[str, Header()]) -> JSONResponse:
+    async with database.sessions.begin() as session:
+        await utils.verify_token(session, token)
+
+        req = await session.execute(select(database.BuyList))
+        data = req.scalars().all()
+
+        count = {}
+
+        for z in data:
+            req = await session.execute(select(database.ProductTypes).where(database.ProductTypes.id == z.prod_type_id))
+            prod_type = req.scalar_one_or_none()
+            count[str(z.prod_type_id)] = z.count
+
+            for _ in range(z.count):
+                await session.execute(insert(database.Products).values(type_id=prod_type.id, production_date=date.today(), expiry_date=date.today() + timedelta(days=prod_type.expiry_days)))
+
+        await session.execute(delete(database.BuyList))
+
+        await analytics.change_values(count, 'added')
+
+        return utils.json_responce({'message': 'Продукты успешно добавлены'})

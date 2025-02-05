@@ -50,7 +50,7 @@ async def get_all(token: Annotated[str, Header()]) -> JSONResponse:
                 'expiry_date': x['expiry_date']
             })
 
-        print(res)
+        # print(res)
 
         return utils.json_responce(res)
 
