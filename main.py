@@ -2,11 +2,14 @@ from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-# from routes.analytics import start_scheduler, shutdown_scheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+from pytz import timezone
 
 import database
 import routes
 import utils
+from routes import analytics
 
 
 @asynccontextmanager
@@ -15,6 +18,13 @@ async def lifespan(app: FastAPI):
     async with database.engine.begin() as connection:
         # await connection.run(database.MyBase.metadata.drop_all)
         await connection.run_sync(database.MyBase.metadata.create_all)
+    
+    print("Starting scheduler")
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(analytics.update_expired_products, trigger=CronTrigger(hour=19, minute=28, second=0, timezone=timezone('Europe/Moscow')))
+    scheduler.start()
+    # await analytics.update_expired_products()
+
     yield
 
 

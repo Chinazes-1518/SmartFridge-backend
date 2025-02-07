@@ -122,10 +122,10 @@ async def add_product(type_id: int, prod_date: date, exp_date: date, token: Anno
         req = await session.execute(select(database.ProductTypes).where(database.ProductTypes.id == type_id))
         if not req.scalar_one_or_none():
             raise HTTPException(404, {'error': 'Такого типа продуктов не существует'})
-        
+
         if exp_date < prod_date:
             raise HTTPException(400, {'error': 'Конечная дата меньше начальной'})
-        
+
         await session.execute(insert(database.Products).values(type_id=type_id, production_date=prod_date, expiry_date=exp_date))
 
         return utils.json_responce({'message': 'Продукт успешно добавлен'})
@@ -145,5 +145,5 @@ async def use_product(prod_id: int, token: Annotated[str, Header()]) -> JSONResp
         req = await session.execute(delete(database.Products).where(database.Products.id == prod_id))
 
         await analytics.change_values({str(type_id): 1}, 'used')
-        
+
         return utils.json_responce({'message': 'Продукт усепшно использован'})
