@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Header
 from fastapi.responses import JSONResponse
-from sqlalchemy import select, insert, update, text
+from sqlalchemy import select, insert, update, text, delete
 from pydantic import BaseModel
 from typing import Annotated
 from datetime import datetime, date
 
 import database
 import utils
+from . import analytics
 
 router = APIRouter(prefix='/products')
 
@@ -128,3 +129,21 @@ async def add_product(type_id: int, prod_date: date, exp_date: date, token: Anno
         await session.execute(insert(database.Products).values(type_id=type_id, production_date=prod_date, expiry_date=exp_date))
 
         return utils.json_responce({'message': 'Продукт успешно добавлен'})
+
+
+@router.post('/use')
+async def use_product(prod_id: int, token: Annotated[str, Header()]) -> JSONResponse:
+    async with database.sessions.begin() as session:
+        await utils.verify_token(session, token)
+
+        req = await session.execute(select(database.Products).where(database.Products.id == prod_id))
+        product = req.scalar_one_or_none()
+        if not product:
+            raise HTTPException(404, {'error': 'Такого продукта не существует'})
+        type_id = product.type_id
+
+        req = await session.execute(delete(database.Products).where(database.Products.id == prod_id))
+
+        await analytics.change_values({str(type_id): 1}, 'used')
+        
+        return utils.json_responce({'message': 'Продукт усепшно использован'})

@@ -14,7 +14,8 @@ router = APIRouter(prefix='/analytics')
 
 
 async def create_new_record(session: AsyncSession):
-    await session.execute(insert(database.Analytics).values(date=date.today(), data={'added': {}, 'used': {}, 'expired': {}}))
+    req = await session.execute(insert(database.Analytics).values(date=date.today(), data={'added': {}, 'used': {}, 'expired': {}}))
+    return req.inserted_primary_key[0]
 
 
 async def change_values(count: dict, action: str):
@@ -22,10 +23,11 @@ async def change_values(count: dict, action: str):
         req = await session.execute(select(database.Analytics).where(database.Analytics.date == date.today()))
         row = req.scalar_one_or_none()
         if row is None:
-            await create_new_record(session)
+            row_id = await create_new_record(session)
             current = {'added': {}, 'used': {}, 'expired': {}}
         else:
             current = row.data
+            row_id = row.id
 
         for k, v in count.items():
             if k in current[action]:
@@ -33,7 +35,7 @@ async def change_values(count: dict, action: str):
             else:
                 current[action][k] = v
 
-        await session.execute(update(database.Analytics).where(database.Analytics.id == row.id).values(data=current))
+        await session.execute(update(database.Analytics).where(database.Analytics.id == row_id).values(data=current))
 
 
 @router.get('/get')
