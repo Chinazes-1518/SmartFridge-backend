@@ -128,6 +128,8 @@ async def add_product(type_id: int, prod_date: date, exp_date: date, token: Anno
 
         await session.execute(insert(database.Products).values(type_id=type_id, production_date=prod_date, expiry_date=exp_date))
 
+        await analytics.change_values({str(type_id): 1}, 'added')
+
         return utils.json_responce({'message': 'Продукт успешно добавлен'})
 
 

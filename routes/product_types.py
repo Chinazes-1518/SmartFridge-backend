@@ -50,6 +50,7 @@ async def add_product_type(
         units: str,
         nutritional: int,
         measure_type: str,
+        expiry_days: int,
         allergens: str = ""
 ) -> str:
     async with database.sessions.begin() as session:
@@ -73,7 +74,8 @@ async def add_product_type(
                 units=units,
                 nutritional=nutritional,
                 measure_type=measure_type,
-                allergens=allergens
+                allergens=allergens,
+                expiry_days=expiry_days
             )
         )
         await session.commit()
