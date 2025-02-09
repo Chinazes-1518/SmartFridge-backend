@@ -44,7 +44,7 @@ async def add_to_buylist(data: BuylistAdd, token: Annotated[str, Header()]) -> J
             res.count += data.count
             await session.commit()
         else:
-            await session.execute(insert(database.BuyList).values(prod_type_id=data.prod_type_id, count=1))
+            await session.execute(insert(database.BuyList).values(prod_type_id=data.prod_type_id, count=data.count))
             await session.commit()
         return utils.json_responce({"message": "Продукт успешно добавлен в список покупок"})
 
