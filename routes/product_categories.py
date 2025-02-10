@@ -28,11 +28,11 @@ async def add_category(name: str, token: Annotated[str, Header()]) -> str:
         existing = await session.execute(
             select(database.ProductCategories).where(database.ProductCategories.name == name.strip())
         )
-        if existing.scalar_one_or_none():
-            raise HTTPException(400, {"error": "Категория уже существует"})
-        await session.execute(insert(database.ProductCategories).values(name=name.strip()))
-        await session.commit()
-        return utils.json_responce({"message": "Категория успешно добавлена"})
+        fff = existing.scalar_one_or_none()
+        if fff:
+            raise HTTPException(400, {"error": "Категория уже существует", "id": fff.id})
+        res = await session.execute(insert(database.ProductCategories).values(name=name.strip()).returning(database.ProductCategories.id))
+        return utils.json_responce({"message": "Категория успешно добавлена", "id": res.scalar()})
 
 
 @router.delete('/remove')

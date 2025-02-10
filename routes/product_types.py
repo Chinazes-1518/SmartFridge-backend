@@ -62,10 +62,11 @@ async def add_product_type(
         if not category.scalar_one_or_none():
             raise HTTPException(400, {"error": "Категория не существует"})
         existing = await session.execute(
-            select(database.ProductTypes).where(database.ProductTypes.name == name.strip())
+            select(database.ProductTypes).where(database.ProductTypes.name == name.strip()).where(database.ProductTypes.category_id == category_id)
         )
-        if existing.scalar_one_or_none():
-            raise HTTPException(400, {"error": "Вид продукта уже существует"})
+        fff = existing.scalar_one_or_none()
+        if fff:
+            raise HTTPException(400, {"error": "Вид продукта уже существует", "id": fff.id})
         res = await session.execute(
             insert(database.ProductTypes).values(
                 name=name.strip(),
