@@ -21,7 +21,7 @@ async def get_all(token: Annotated[str, Header()]) -> JSONResponse:
         SELECT products.id AS prod_id, products.production_date, products.expiry_date,
         product_types.name AS type_name, product_types.amount, product_types.units, product_types.id AS type_id,
         product_types.nutritional, product_types.measure_type, product_types.allergens,
-        product_categories.name AS cat_name, product_categories.id AS cat_id
+        product_categories.name AS cat_name, product_categories.id AS cat_id, product_types.expiry_days
         FROM products
         JOIN product_types ON products.type_id = product_types.id
         JOIN product_categories ON product_types.category_id = product_categories.id
@@ -65,7 +65,7 @@ async def get_product(token: Annotated[str, Header()], id: int) -> JSONResponse:
         SELECT products.id AS prod_id, products.production_date, products.expiry_date,
         product_types.name AS type_name, product_types.amount, product_types.units, product_types.id AS type_id,
         product_types.nutritional, product_types.measure_type, product_types.allergens,
-        product_categories.name AS cat_name, product_categories.id AS cat_id
+        product_categories.name AS cat_name, product_categories.id AS cat_id, product_types.expiry_days
         FROM products
         JOIN product_types ON products.type_id = product_types.id
         JOIN product_categories ON product_types.category_id = product_categories.id

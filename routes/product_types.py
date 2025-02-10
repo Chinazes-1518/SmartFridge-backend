@@ -66,7 +66,7 @@ async def add_product_type(
         )
         if existing.scalar_one_or_none():
             raise HTTPException(400, {"error": "Вид продукта уже существует"})
-        await session.execute(
+        res = await session.execute(
             insert(database.ProductTypes).values(
                 name=name.strip(),
                 category_id=category_id,
@@ -76,10 +76,9 @@ async def add_product_type(
                 measure_type=measure_type,
                 allergens=allergens,
                 expiry_days=expiry_days
-            )
+            ).returning(database.ProductTypes.id)
         )
-        await session.commit()
-        return utils.json_responce({"message": "Вид продукта успешно добавлен"})
+        return utils.json_responce({"message": "Вид продукта успешно добавлен", "id": res.scalar()})
 
 
 @router.delete('/remove')
