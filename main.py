@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     
     print("Starting scheduler")
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(analytics.update_expired_products, trigger=CronTrigger(hour=19, minute=28, second=0, timezone=timezone('Europe/Moscow')))
+    scheduler.add_job(analytics.update_expired_products, trigger=CronTrigger(hour=0, minute=0, second=0, timezone=timezone('Europe/Moscow')))
     scheduler.start()
     # await analytics.update_expired_products()
 
